@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AppDeHoy — Calculadora de Cantidades para Recetas</title>
+<meta name="theme-color" content="#8B5E3C">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="AppDeHoy">
+<link rel="manifest" href="manifest-calculadora-recetas.json">
+<link rel="apple-touch-icon" href="icon-appdeboy-192.png">
+
+<style>
+  :root {
+    --crema:#FAF7F2;--crema2:#F2EDE4;--crema3:#E8DFD0;--blanco:#FFFFFF;
+    --tierra:#8B5E3C;--tierra-dk:#6B4423;--dorado:#C9A96E;
+    --salvia:#7A9E7E;--salvia-dk:#5C7D60;
+    --texto:#2C1810;--muted:#7A6355;--sutil:#B8A898;--borde:#E8DFD0;
+    --font-d:'Playfair Display',Georgia,serif;--font-b:'DM Sans',sans-serif;
+  }
+  [data-theme="dark"]{
+    --crema:#1C1510;--crema2:#251C15;--crema3:#2E2218;--blanco:#2A1F17;
+    --tierra:#D4956A;--tierra-dk:#E8AA80;--dorado:#C9A96E;
+    --salvia:#8FBB93;--salvia-dk:#A8CFA8;
+    --texto:#F0E8DF;--muted:#B09880;--sutil:#6B5545;--borde:#3D2E1E;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--crema);color:var(--texto);font-family:var(--font-b);min-height:100vh;transition:background .3s,color .3s;}
+  .bg-deco{position:fixed;inset:0;pointer-events:none;z-index:0;
+    background:radial-gradient(circle at 85% 10%,rgba(201,169,110,.09) 0%,transparent 45%),
+               radial-gradient(circle at 10% 90%,rgba(122,158,126,.08) 0%,transparent 40%);}
+  .wrap{max-width:680px;margin:0 auto;padding:0 20px 72px;position:relative;z-index:1;}
+
+  header{padding:28px 0 24px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--borde);margin-bottom:32px;}
+  .logo-icon{width:40px;height:40px;background:var(--tierra);border-radius:11px;display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-weight:900;font-size:20px;color:var(--crema);flex-shrink:0;}
+  .logo-text .brand{font-family:var(--font-d);font-size:18px;font-weight:700;color:var(--texto);line-height:1;}
+  .logo-text .brand span{color:var(--tierra);}
+  .logo-text .tagline{font-size:10px;color:var(--muted);margin-top:2px;}
+  .header-right{margin-left:auto;display:flex;align-items:center;gap:8px;}
+  .app-badge{font-size:10px;font-weight:500;letter-spacing:.05em;text-transform:uppercase;color:var(--tierra);background:rgba(139,94,60,.08);border:1px solid rgba(139,94,60,.2);padding:4px 10px;border-radius:20px;}
+  .theme-toggle{width:34px;height:34px;border-radius:10px;background:var(--crema2);border:1px solid var(--borde);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;font-size:15px;color:var(--muted);}
+  .theme-toggle:hover{border-color:var(--dorado);}
+
+  h1{font-family:var(--font-d);font-size:clamp(26px,5vw,38px);font-weight:900;line-height:1.1;margin-bottom:8px;}
+  h1 em{color:var(--tierra);font-style:italic;}
+  .divider{width:40px;height:3px;background:var(--dorado);border-radius:2px;margin:10px 0 12px;}
+  .subtitle{font-size:14px;color:var(--muted);line-height:1.65;margin-bottom:28px;}
+  .section-label{font-size:11px;font-weight:500;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:10px;}
+
+  .card{background:var(--blanco);border:1.5px solid var(--dorado);border-radius:14px;padding:22px;margin-bottom:14px;}
+  .card-title{font-family:var(--font-d);font-size:15px;font-weight:700;color:var(--tierra);margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+
+  /* COMENSALES SELECTOR */
+  .comensales-wrap{display:flex;align-items:center;gap:16px;margin-bottom:8px;}
+  .coms-btn{width:40px;height:40px;border-radius:50%;background:var(--crema2);border:1.5px solid var(--borde);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--tierra);font-weight:700;transition:all .15s;user-select:none;}
+  .coms-btn:hover{background:rgba(139,94,60,.1);border-color:var(--tierra);}
+  .coms-num{font-family:var(--font-d);font-size:42px;font-weight:900;color:var(--tierra);min-width:60px;text-align:center;line-height:1;}
+  .coms-label{font-size:13px;color:var(--muted);}
+
+  .ratio-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;background:rgba(122,158,126,.1);border:1px solid rgba(122,158,126,.25);border-radius:20px;font-size:12px;color:var(--salvia-dk);font-weight:500;}
+  [data-theme="dark"] .ratio-badge{color:var(--salvia);}
+
+  /* INGREDIENTES */
+  .ingrediente-row{display:grid;grid-template-columns:1fr 100px 120px 32px;gap:8px;align-items:center;margin-bottom:8px;}
+  @media(max-width:500px){.ingrediente-row{grid-template-columns:1fr 80px 90px 28px;gap:6px;}}
+  .ing-header{display:grid;grid-template-columns:1fr 100px 120px 32px;gap:8px;margin-bottom:6px;}
+  @media(max-width:500px){.ing-header{grid-template-columns:1fr 80px 90px 28px;gap:6px;}}
+  .ing-col-label{font-size:10px;font-weight:500;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;}
+
+  input[type="text"],input[type="number"],select{background:var(--blanco);border:1.5px solid var(--dorado);border-radius:9px;color:var(--texto);font-family:var(--font-b);font-size:13px;padding:9px 10px;outline:none;width:100%;transition:border-color .2s;appearance:none;-webkit-appearance:none;}
+  input:focus,select:focus{border-color:var(--tierra);box-shadow:0 0 0 3px rgba(139,94,60,.08);}
+  select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%237A6355' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;padding-right:26px;}
+  [data-theme="dark"] select option{background:#251C15;}
+
+  .btn-del-ing{width:30px;height:30px;border-radius:8px;background:transparent;border:1px solid var(--borde);color:var(--muted);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0;}
+  .btn-del-ing:hover{border-color:var(--tierra);color:var(--tierra);}
+
+  .btn-add-ing{display:flex;align-items:center;gap:6px;padding:9px 14px;background:transparent;border:1.5px dashed var(--borde);border-radius:10px;color:var(--muted);font-size:13px;cursor:pointer;font-family:var(--font-b);transition:all .2s;width:100%;justify-content:center;margin-top:4px;}
+  .btn-add-ing:hover{border-color:var(--dorado);color:var(--tierra);}
+
+  /* RECETAS RÁPIDAS */
+  .recetas-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;}
+  @media(max-width:480px){.recetas-grid{grid-template-columns:repeat(2,1fr);}}
+  .receta-btn{padding:10px 8px;border-radius:10px;border:1.5px solid var(--borde);background:var(--crema2);text-align:center;cursor:pointer;transition:all .18s;user-select:none;}
+  .receta-btn:hover{border-color:var(--dorado);}
+  .receta-emoji{font-size:20px;display:block;margin-bottom:4px;}
+  .receta-nombre{font-size:11px;font-weight:500;color:var(--muted);}
+
+  /* BOTÓN CALCULAR */
+  .btn-calcular{width:100%;padding:14px;background:var(--tierra);color:var(--crema);border:none;border-radius:12px;font-family:var(--font-d);font-size:16px;font-weight:700;cursor:pointer;transition:all .2s;margin-bottom:20px;}
+  .btn-calcular:hover{background:var(--tierra-dk);transform:translateY(-1px);}
+
+  /* RESULTADO */
+  .resultado{display:none;}
+  .resultado.visible{display:block;animation:aparecer .35s ease;}
+  @keyframes aparecer{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+  .res-header{background:var(--blanco);border:1.5px solid var(--dorado);border-top:4px solid var(--tierra);border-radius:14px;padding:18px 20px;margin-bottom:12px;}
+  .res-titulo{font-family:var(--font-d);font-size:18px;font-weight:900;color:var(--tierra);margin-bottom:4px;}
+  .res-subtitulo{font-size:13px;color:var(--muted);}
+
+  .res-grid{display:grid;gap:8px;}
+  .res-item{display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--blanco);border:1.5px solid var(--borde);border-radius:11px;transition:all .2s;animation:fadeUp .3s ease both;}
+  .res-item:hover{border-color:var(--dorado);background:var(--crema2);}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+  .res-nombre{overflow-wrap:anywhere;flex:1;font-size:14px;color:var(--texto);font-weight:500;}
+  .res-original{font-size:12px;color:var(--muted);}
+  .res-nuevo{font-family:var(--font-d);font-size:20px;font-weight:700;color:var(--tierra);}
+  .res-unidad{font-size:12px;color:var(--muted);margin-left:3px;}
+
+  .res-flecha{color:var(--dorado);font-size:16px;}
+
+  .btn-reset{width:100%;padding:11px;background:transparent;border:1.5px solid var(--borde);border-radius:10px;font-family:var(--font-b);font-size:13px;color:var(--muted);cursor:pointer;margin-top:8px;transition:all .2s;}
+  .btn-reset:hover{border-color:var(--tierra);color:var(--tierra);}
+
+  .error-box{background:rgba(192,57,43,.07);border:1.5px solid rgba(192,57,43,.2);border-left:4px solid #C0392B;border-radius:0 10px 10px 0;padding:12px 14px;font-size:13px;color:#8B2A18;display:none;margin-bottom:12px;}
+  [data-theme="dark"] .error-box{color:#E8A598;}
+
+
+  /* BANNER PWA */
+  .pwa-banner{position:fixed;top:16px;left:50%;transform:translateX(-50%);width:calc(100% - 32px);max-width:480px;background:var(--blanco);border:1.5px solid var(--dorado);border-radius:16px;padding:14px 16px;box-shadow:0 8px 32px rgba(139,94,60,.18);display:none;align-items:center;gap:12px;z-index:9999;animation:pwaBannerIn .4s ease;}
+  .pwa-banner.visible{display:flex;}
+  @keyframes pwaBannerIn{from{opacity:0;transform:translateX(-50%) translateY(-20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+  .pwa-banner-icon{width:44px;height:44px;background:var(--tierra);border-radius:11px;display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-weight:900;font-size:20px;color:var(--crema);flex-shrink:0;}
+  .pwa-banner-texto{flex:1;min-width:0;}
+  .pwa-banner-titulo{font-size:13px;font-weight:600;color:var(--texto);margin-bottom:2px;}
+  .pwa-banner-sub{font-size:11px;color:var(--muted);}
+  .pwa-banner-btns{display:flex;flex-direction:column;gap:6px;flex-shrink:0;}
+  .pwa-btn-instalar{padding:7px 14px;background:var(--tierra);color:var(--crema);border:none;border-radius:9px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font-b);white-space:nowrap;transition:background .2s;}
+  .pwa-btn-instalar:hover{background:var(--tierra-dk);}
+  .pwa-btn-no{padding:4px 8px;background:transparent;border:none;font-size:11px;color:var(--muted);cursor:pointer;font-family:var(--font-b);text-align:center;}
+  .pwa-btn-no:hover{color:var(--tierra);}
+  footer{margin-top:44px;padding-top:20px;border-top:1px solid var(--borde);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;}
+  .footer-brand{font-family:var(--font-d);font-size:13px;font-weight:700;color:var(--muted);}
+  .footer-brand span{color:var(--tierra);}
+  .footer-text{font-size:11px;color:var(--sutil);}
+
+  .subtitle,.coms-label,.res-subtitulo,.res-nombre,input[type="text"],input[type="number"],select,.btn-add-ing,.btn-reset{font-size:16px;}
+  .section-label,.ing-col-label,.receta-nombre,.res-original,.res-unidad,.footer-text{font-size:14px;}
+  .card-title{font-size:19px;}.coms-btn{width:46px;height:46px;}.btn-del-ing{min-height:44px;}
+  .receta-btn:focus-visible,button:focus-visible{outline:3px solid var(--tierra);outline-offset:3px;}
+  .install-help{margin-top:24px;padding:18px;background:var(--crema2);border-radius:12px;font-size:16px;line-height:1.6;}
+  .install-help summary{cursor:pointer;font-weight:600;}.install-help p{margin-top:10px;}
+  @media(max-width:520px){.ing-header{display:none;}.ingrediente-row{grid-template-columns:1fr 1fr 44px;padding:12px 0;border-bottom:1px solid var(--borde);}.ing-nombre{grid-column:1 / -1;}.card{padding:16px;}.wrap{padding-left:14px;padding-right:14px;}.app-badge{display:none;}.res-item{flex-wrap:wrap;}}
+
+  .welcome-tools{display:grid;gap:12px;margin:0 0 26px;}
+  .manual-link{display:block;padding:16px 18px;border-radius:12px;background:var(--tierra);color:var(--crema);font-size:18px;font-weight:600;text-align:center;text-decoration:none;}
+  .manual-link:hover{background:var(--tierra-dk);}.manual-link:focus-visible{outline:3px solid var(--texto);outline-offset:3px;}
+  .install-banner{display:flex;gap:14px;align-items:center;justify-content:space-between;background:var(--crema2);border:1px solid var(--borde);border-radius:12px;padding:16px;font-size:16px;line-height:1.5;}
+  .install-banner a{color:var(--tierra-dk);font-weight:600;white-space:nowrap;padding:10px;border:1px solid var(--dorado);border-radius:8px;}
+  @media(max-width:400px){.install-banner{align-items:flex-start;flex-direction:column;}}
+</style>
+</head>
+<body>
+<div class="bg-deco"></div>
+<div class="wrap">
+
+  <header>
+    <div class="logo-icon">A</div>
+    <div class="logo-text">
+      <div class="brand">App<span>DeHoy</span></div>
+      <div class="tagline">Una app. Un problema. Resuelto.</div>
+    </div>
+    <div class="header-right">
+      <div class="app-badge">Recetas</div>
+      <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" aria-label="Cambiar tema">🌙</button>
+    </div>
+  </header>
+
+  <h1>Ajusta tu receta a los<br><em>comensales que quieras</em></h1>
+  <div class="divider"></div>
+  <p class="subtitle">Introduce los ingredientes de tu receta, las raciones originales y las que necesitas. La app recalcula todo al instante.</p>
+
+  <div class="welcome-tools">
+    <a class="manual-link" href="./manual.html">📖 Cómo usar la calculadora</a>
+    <div class="install-banner" aria-label="Instalar la calculadora">
+      <div><strong>Tenla siempre a mano</strong><br>Puedes guardarla en tu móvil u ordenador.</div>
+      <a href="#guardar-app" onclick="document.getElementById('guardar-app').open=true">Cómo instalarla</a>
+    </div>
+  </div>
+
+  <!-- RECETAS RÁPIDAS -->
+  <div class="card">
+    <div class="card-title">⚡ Recetas de ejemplo</div>
+    <p class="section-label">Carga una receta de ejemplo para empezar</p>
+    <div class="recetas-grid">
+      <div class="receta-btn" onclick="cargarReceta('tortilla')"><span class="receta-emoji">🥚</span><span class="receta-nombre">Tortilla de patatas</span></div>
+      <div class="receta-btn" onclick="cargarReceta('tarta')"><span class="receta-emoji">🎂</span><span class="receta-nombre">Tarta de chocolate</span></div>
+      <div class="receta-btn" onclick="cargarReceta('paella')"><span class="receta-emoji">🥘</span><span class="receta-nombre">Paella</span></div>
+      <div class="receta-btn" onclick="cargarReceta('croquetas')"><span class="receta-emoji">🍳</span><span class="receta-nombre">Croquetas</span></div>
+      <div class="receta-btn" onclick="cargarReceta('gazpacho')"><span class="receta-emoji">🍅</span><span class="receta-nombre">Gazpacho</span></div>
+      <div class="receta-btn" onclick="cargarReceta('bizcocho')"><span class="receta-emoji">🍰</span><span class="receta-nombre">Bizcocho</span></div>
+    </div>
+  </div>
+
+  <!-- COMENSALES ORIGINALES -->
+  <div class="card">
+    <div class="card-title">👥 Raciones de la receta original</div>
+    <div class="comensales-wrap">
+      <button class="coms-btn" onclick="cambiarComs('original', -1)">−</button>
+      <div>
+        <div class="coms-num" id="comsOriginalNum">4</div>
+        <div class="coms-label">raciones originales</div>
+      </div>
+      <button class="coms-btn" onclick="cambiarComs('original', +1)">+</button>
+    </div>
+  </div>
+
+  <!-- COMENSALES NUEVOS -->
+  <div class="card">
+    <div class="card-title">🎯 Raciones que necesitas</div>
+    <div class="comensales-wrap">
+      <button class="coms-btn" onclick="cambiarComs('nuevo', -1)">−</button>
+      <div>
+        <div class="coms-num" id="comsNuevoNum">8</div>
+        <div class="coms-label">raciones nuevas</div>
+      </div>
+      <button class="coms-btn" onclick="cambiarComs('nuevo', +1)">+</button>
+    </div>
+    <div style="margin-top:10px;">
+      <span class="ratio-badge" id="ratioBadge">✕ 2 — doblas la receta</span>
+    </div>
+  </div>
+
+  <!-- INGREDIENTES -->
+  <div class="card">
+    <div class="card-title">🧂 Ingredientes</div>
+    <div class="ing-header">
+      <span class="ing-col-label">Ingrediente</span>
+      <span class="ing-col-label">Cantidad</span>
+      <span class="ing-col-label">Unidad</span>
+      <span></span>
+    </div>
+    <div id="ingredientesLista"></div>
+    <button class="btn-add-ing" onclick="agregarIngrediente()">+ Añadir ingrediente</button>
+  </div>
+
+  <div class="error-box" id="errorBox" role="alert"></div>
+
+  <button class="btn-calcular" onclick="calcular()">✦ Calcular cantidades</button>
+
+  <!-- RESULTADO -->
+  <div class="resultado" id="resultado">
+    <div class="res-header">
+      <div class="res-titulo" id="resTitulo">Ingredientes ajustados</div>
+      <div class="res-subtitulo" id="resSubtitulo"></div>
+    </div>
+    <div class="res-grid" id="resGrid"></div><p class="subtitle" style="margin-top:16px">Las cantidades se ajustan por proporción. Los tiempos de cocción no se recalculan; ajusta la sal y las especias a tu gusto.</p>
+    <button class="btn-reset" onclick="resetear()">🔄 Nueva receta</button>
+  </div>
+
+  <details class="install-help" id="guardar-app"><summary>Guardar la calculadora en mi móvil u ordenador</summary>
+  <p>Puedes usarla desde este enlace sin instalar nada.</p>
+  <button id="installButton" class="btn-reset" hidden>Instalar calculadora</button>
+  <p id="installHelp">En Android, abre el menú de Chrome y busca «Instalar aplicación» o «Añadir a pantalla de inicio». En iPhone o iPad, abre la página en Safari, pulsa Compartir y «Añadir a pantalla de inicio». En el ordenador, busca la opción de instalar en Chrome o Edge. El nombre puede variar según el navegador.</p>
+  <p id="offlineStatus" role="status">Preparando el uso sin conexión…</p>
+  <p>Los ingredientes que escribas no se guardan al cerrar o recargar.</p>
+  </details>
+  <footer>
+    <div class="footer-brand">App<span>DeHoy</span></div>
+    <div class="footer-text">Sin registro · Gratuita<br>Sin conexión después de la primera carga completa</div>
+  </footer>
+</div>
+
+<script>
+  // ── Theme ──────────────────────────────────────────────
+  let theme = localStorage.getItem('appdeboy-theme') || 'light';
+  function applyTheme(t) {
+    theme = t;
+    document.documentElement.setAttribute('data-theme', t);
+    document.getElementById('themeToggle').textContent = t === 'light' ? '🌙' : '☀️';
+    localStorage.setItem('appdeboy-theme', t);
+  }
+  function toggleTheme() { applyTheme(theme === 'light' ? 'dark' : 'light'); }
+  applyTheme(theme);
+
+  // ── Estado ─────────────────────────────────────────────
+  let comsOriginal = 4;
+  let comsNuevo    = 8;
+  let idCounter    = 0;
+
+  const UNIDADES = ['g','kg','ml','l','cucharadita','cucharada','taza','unidad','diente','pizca','al gusto'];
+
+  const RECETAS = {
+    tortilla: { nombre:'Tortilla de patatas', raciones:4, ingredientes:[
+      {nombre:'Huevos',cantidad:6,unidad:'unidad'},{nombre:'Patatas',cantidad:600,unidad:'g'},
+      {nombre:'Cebolla',cantidad:1,unidad:'unidad'},{nombre:'Aceite de oliva',cantidad:150,unidad:'ml'},
+      {nombre:'Sal',cantidad:1,unidad:'pizca'}]},
+    tarta: { nombre:'Tarta de chocolate', raciones:8, ingredientes:[
+      {nombre:'Harina',cantidad:200,unidad:'g'},{nombre:'Azúcar',cantidad:180,unidad:'g'},
+      {nombre:'Cacao en polvo',cantidad:60,unidad:'g'},{nombre:'Mantequilla',cantidad:120,unidad:'g'},
+      {nombre:'Huevos',cantidad:3,unidad:'unidad'},{nombre:'Leche',cantidad:200,unidad:'ml'},
+      {nombre:'Levadura',cantidad:1,unidad:'cucharada'}]},
+    paella: { nombre:'Paella valenciana', raciones:4, ingredientes:[
+      {nombre:'Arroz',cantidad:400,unidad:'g'},{nombre:'Pollo',cantidad:500,unidad:'g'},
+      {nombre:'Judías verdes',cantidad:150,unidad:'g'},{nombre:'Tomate',cantidad:2,unidad:'unidad'},
+      {nombre:'Pimentón',cantidad:1,unidad:'cucharadita'},{nombre:'Azafrán',cantidad:1,unidad:'pizca'},
+      {nombre:'Aceite de oliva',cantidad:80,unidad:'ml'},{nombre:'Agua o caldo',cantidad:1,unidad:'l'}]},
+    croquetas: { nombre:'Croquetas caseras', raciones:4, ingredientes:[
+      {nombre:'Leche',cantidad:500,unidad:'ml'},{nombre:'Mantequilla',cantidad:50,unidad:'g'},
+      {nombre:'Harina',cantidad:80,unidad:'g'},{nombre:'Jamón serrano',cantidad:150,unidad:'g'},
+      {nombre:'Pan rallado',cantidad:200,unidad:'g'},{nombre:'Huevos para rebozar',cantidad:2,unidad:'unidad'}]},
+    gazpacho: { nombre:'Gazpacho andaluz', raciones:4, ingredientes:[
+      {nombre:'Tomates maduros',cantidad:1,unidad:'kg'},{nombre:'Pepino',cantidad:1,unidad:'unidad'},
+      {nombre:'Pimiento verde',cantidad:1,unidad:'unidad'},{nombre:'Ajo',cantidad:1,unidad:'diente'},
+      {nombre:'Aceite de oliva',cantidad:80,unidad:'ml'},{nombre:'Vinagre',cantidad:2,unidad:'cucharada'},
+      {nombre:'Sal',cantidad:1,unidad:'pizca'},{nombre:'Pan duro',cantidad:50,unidad:'g'}]},
+    bizcocho: { nombre:'Bizcocho esponjoso', raciones:8, ingredientes:[
+      {nombre:'Harina',cantidad:250,unidad:'g'},{nombre:'Azúcar',cantidad:200,unidad:'g'},
+      {nombre:'Huevos',cantidad:3,unidad:'unidad'},{nombre:'Aceite de girasol',cantidad:120,unidad:'ml'},
+      {nombre:'Leche',cantidad:120,unidad:'ml'},{nombre:'Levadura',cantidad:1,unidad:'cucharada'},
+      {nombre:'Ralladura de limón',cantidad:1,unidad:'unidad'}]},
+  };
+
+  // ── Comensales ─────────────────────────────────────────
+  function cambiarComs(tipo, delta) {
+    if (tipo === 'original') {
+      comsOriginal = Math.max(1, comsOriginal + delta);
+      document.getElementById('comsOriginalNum').textContent = comsOriginal;
+    } else {
+      comsNuevo = Math.max(1, comsNuevo + delta);
+      document.getElementById('comsNuevoNum').textContent = comsNuevo;
+    }
+    actualizarRatio();
+    document.getElementById('resultado').classList.remove('visible');
+  }
+
+  function actualizarRatio() {
+    const ratio = comsNuevo / comsOriginal;
+    const badge = document.getElementById('ratioBadge');
+    let texto;
+    if (Math.abs(ratio - 1) < 0.01)      texto = '= Misma cantidad';
+    else if (ratio === 2)                 texto = '✕ 2 — doblas la receta';
+    else if (ratio === 0.5)               texto = '÷ 2 — reduces a la mitad';
+    else if (ratio > 1)                   texto = `✕ ${fmtRatio(ratio)} — aumentas la receta`;
+    else                                  texto = `÷ ${fmtRatio(1/ratio)} — reduces la receta`;
+    badge.textContent = texto;
+  }
+
+  function fmtRatio(n) {
+    const r = Math.round(n * 100) / 100;
+    return r.toLocaleString('es-ES', {maximumFractionDigits:2});
+  }
+
+  // ── Ingredientes ───────────────────────────────────────
+  function escapeHTML(value) { return String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function agregarIngrediente(nombre='', cantidad='', unidad='g') {
+    document.getElementById('resultado').classList.remove('visible');
+    const id = ++idCounter;
+    const lista = document.getElementById('ingredientesLista');
+    const row = document.createElement('div');
+    row.className = 'ingrediente-row';
+    row.id = `ing-${id}`;
+
+    const opts = UNIDADES.map(u => `<option value="${u}" ${u===unidad?'selected':''}>${u}</option>`).join('');
+    row.innerHTML = `
+      <input type="text" placeholder="ej: Harina" value="${escapeHTML(nombre)}" class="ing-nombre" aria-label="Nombre del ingrediente"/>
+      <input type="number" placeholder="0" value="${cantidad}" min="0" step="any" inputmode="decimal" class="ing-cantidad" aria-label="Cantidad original"/>
+      <select class="ing-unidad" aria-label="Unidad de medida">${opts}</select>
+      <button class="btn-del-ing" aria-label="Eliminar ingrediente" onclick="eliminarIngrediente(${id})">×</button>`;
+    lista.appendChild(row);
+  }
+
+  function eliminarIngrediente(id) {
+    document.getElementById(`ing-${id}`)?.remove();
+    document.getElementById('resultado').classList.remove('visible');
+  }
+
+  function getIngredientes() {
+    return [...document.querySelectorAll('.ingrediente-row')].map(row => ({
+      nombre:   row.querySelector('.ing-nombre').value.trim(),
+      cantidad: Number.parseFloat(row.querySelector('.ing-cantidad').value),
+      unidad:   row.querySelector('.ing-unidad').value,
+    })).filter(i => i.nombre || !Number.isNaN(i.cantidad));
+  }
+
+  // ── Recetas rápidas ────────────────────────────────────
+  function cargarReceta(key) {
+    const r = RECETAS[key];
+    comsOriginal = r.raciones;
+    comsNuevo    = r.raciones;
+    document.getElementById('comsOriginalNum').textContent = comsOriginal;
+    document.getElementById('comsNuevoNum').textContent    = comsNuevo;
+    actualizarRatio();
+    document.getElementById('ingredientesLista').innerHTML = '';
+    idCounter = 0;
+    r.ingredientes.forEach(i => agregarIngrediente(i.nombre, i.cantidad, i.unidad));
+    document.getElementById('resultado').classList.remove('visible');
+    document.getElementById('errorBox').style.display = 'none';
+  }
+
+  // ── Calcular ───────────────────────────────────────────
+  function calcular() {
+    document.getElementById('errorBox').style.display = 'none';
+    const ings = getIngredientes();
+    if (ings.length === 0) { mostrarError('Añade al menos un ingrediente para calcular.'); return; }
+    if (ings.some(i => !i.nombre || (i.unidad !== 'al gusto' && (!Number.isFinite(i.cantidad) || i.cantidad <= 0)))) { mostrarError('Escribe el nombre y una cantidad mayor que cero para cada ingrediente.'); document.getElementById('resultado').classList.remove('visible'); return; }
+    if (comsOriginal === 0) { mostrarError('Las raciones originales no pueden ser 0.'); return; }
+
+    const ratio = comsNuevo / comsOriginal;
+    const grid  = document.getElementById('resGrid');
+    grid.innerHTML = '';
+
+    document.getElementById('resTitulo').textContent   = `Para ${comsNuevo} ${comsNuevo === 1 ? 'ración' : 'raciones'}`;
+    document.getElementById('resSubtitulo').textContent = `Receta original para ${comsOriginal} · Factor ×${fmtRatio(ratio)}`;
+
+    ings.forEach((ing, i) => {
+      const nuevaCantidad = ing.cantidad * ratio;
+      const item = document.createElement('div');
+      item.className = 'res-item';
+      item.style.animationDelay = (i * 0.05) + 's';
+      item.innerHTML = `
+        <div style="flex:1">
+          <div class="res-nombre">${escapeHTML(ing.nombre)}</div>
+          <div class="res-original">${ing.unidad === 'al gusto' ? 'Al gusto' : fmtCantidad(ing.cantidad) + ' ' + ing.unidad + ' originales'}</div>
+        </div>
+        <span class="res-flecha">→</span>
+        <div style="text-align:right">
+          <span class="res-nuevo">${ing.unidad === 'al gusto' ? 'Al gusto' : fmtCantidad(nuevaCantidad)}</span>
+          <span class="res-unidad">${ing.unidad === 'al gusto' ? '' : ing.unidad}</span>
+        </div>`;
+      grid.appendChild(item);
+    });
+
+    document.getElementById('resultado').classList.add('visible');
+    document.getElementById('resultado').scrollIntoView({ behavior:'smooth', block:'start' });
+  }
+
+  function fmtCantidad(n) {
+    if (n === 0) return '0';
+    const r = Math.round(n * 100) / 100;
+    return r.toLocaleString('es-ES', {maximumFractionDigits:2});
+  }
+
+  function mostrarError(msg) { const b=document.getElementById('errorBox'); b.textContent=msg; b.style.display='block'; }
+
+  function resetear() {
+    document.getElementById('ingredientesLista').innerHTML='';
+    idCounter=0; comsOriginal=4; comsNuevo=4;
+    document.getElementById('comsOriginalNum').textContent=4;
+    document.getElementById('comsNuevoNum').textContent=4;
+    actualizarRatio();
+    document.getElementById('resultado').classList.remove('visible');
+    document.getElementById('errorBox').style.display='none';
+    agregarIngrediente();
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+
+  document.getElementById('ingredientesLista').addEventListener('input', () => {document.getElementById('resultado').classList.remove('visible'); document.getElementById('errorBox').style.display='none';});
+  // Init con tortilla de ejemplo
+  cargarReceta('tortilla');
+  comsNuevo = 8;
+  document.getElementById('comsNuevoNum').textContent = 8;
+  actualizarRatio();
+</script>
+
+<script>
+const statusEl = document.getElementById('offlineStatus');
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw-calculadora-recetas.js')
+    .then(() => navigator.serviceWorker.ready)
+    .then(() => { statusEl.textContent = 'Lista para usar sin conexión en este navegador. Si borras sus datos, tendrás que abrirla de nuevo con internet.'; })
+    .catch(() => { statusEl.textContent = 'No se ha podido preparar el modo sin conexión. Ábrela desde su enlace con internet y vuelve a intentarlo.'; });
+} else { statusEl.textContent = 'Este navegador no permite preparar el modo sin conexión.'; }
+let installPrompt;
+const installButton = document.getElementById('installButton');
+window.addEventListener('beforeinstallprompt', e => {e.preventDefault(); installPrompt=e; installButton.hidden=false;});
+installButton.addEventListener('click', async () => {
+ if (!installPrompt) return;
+ await installPrompt.prompt();
+ await installPrompt.userChoice;
+ installPrompt=null; installButton.hidden=true;
+});
+window.addEventListener('appinstalled', () => {installButton.hidden=true; document.getElementById('installHelp').textContent='Calculadora instalada.';});
+document.querySelectorAll('.receta-btn').forEach(el => {el.setAttribute('role','button');el.tabIndex=0;el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();el.click();}});});
+document.querySelectorAll('.coms-btn').forEach(el=>el.setAttribute('aria-label',(el.textContent.trim()==='+'?'Aumentar':'Reducir')+' '+el.parentElement.parentElement.querySelector('.card-title').textContent));
+</script>
+</body>
+</html>

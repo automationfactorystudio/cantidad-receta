@@ -1,0 +1,75 @@
+CALCULADORA DE RECETAS — PUBLICAR EN GITHUB PAGES
+
+1. Extrae el ZIP en tu ordenador.
+2. En GitHub crea un repositorio público, por ejemplo calculadora-recetas.
+3. En Add file > Upload files sube estos SEIS archivos juntos a la raíz:
+   index.html
+   manual.html
+   manifest-calculadora-recetas.json
+   sw-calculadora-recetas.js
+   icon-appdeboy-192.png
+   icon-appdeboy-512.png
+   No subas el ZIP sin extraer ni metas los archivos dentro de otra carpeta.
+4. Guarda con Commit changes.
+5. En Settings > Pages selecciona Deploy from a branch, rama main,
+   carpeta / (root), y Save.
+6. Espera a que GitHub muestre el enlace publicado. Ábrelo con internet.
+
+SUBDOMINIO (EJEMPLO, TODAVÍA NO CONFIGURADO)
+En Settings > Pages > Custom domain escribe cantidades.metodo7d.es y guarda.
+Después, en los DNS de metodo7d.es, crea un CNAME:
+Nombre: cantidades
+Destino: TU_USUARIO.github.io
+Sustituye TU_USUARIO por el usuario propietario del repositorio.
+No incluyas https:// ni el nombre del repositorio en ese destino.
+Activa Enforce HTTPS en Pages cuando esté disponible. La propagación DNS
+puede tardar hasta 24 horas. Si eliges otro subdominio, cambia el ejemplo.
+GitHub crea el archivo CNAME al guardar el dominio: consérvalo.
+
+INSTALACIÓN Y USO SIN CONEXIÓN
+La calculadora funciona al abrir su enlace, sin instalar nada.
+Al final de la página despliega «Guardar la calculadora en mi móvil u ordenador».
+Espera al mensaje «Lista para usar sin conexión» antes de probar sin internet.
+En navegadores compatibles aparecerá «Instalar calculadora». También se
+incluyen las instrucciones para Android, iPhone/iPad y ordenador.
+En iPhone se usa Safari > Compartir > Añadir a pantalla de inicio.
+Publica primero en la dirección definitiva y luego instala desde esa dirección.
+No sirve abrir index.html con doble clic para comprobar la instalación PWA.
+La primera carga requiere internet. Borrar los datos del navegador elimina
+la copia sin conexión. Los ingredientes introducidos no se guardan.
+
+QUÉ SE HA CORREGIDO
+Rutas relativas para Pages con o sin subdominio; recursos sin conexión;
+instrucciones y botón de instalación; fuentes locales del dispositivo;
+unidades en español; textos y campos mayores; diseño estrecho en móvil;
+validación de cantidades; resultados se ocultan al editar; texto introducido
+tratado como texto; «al gusto» se conserva sin multiplicarlo.
+No requiere claves API, servidor propio, registro ni servicios de IA.
+
+PARA FUTURAS ACTUALIZACIONES
+Si cambias la aplicación, cambia también la versión v3 a v4, etc., en el
+archivo sw-calculadora-recetas.js y sube ambos. Después abre la aplicación
+con conexión, espera la actualización y vuelve a abrirla.
+
+ANTES DE GRABAR
+Comprueba el enlace definitivo en tu móvil y ordenador. Instálala, espera
+el aviso de modo sin conexión, cierra la aplicación, desconecta internet y
+vuelve a abrirla. Prueba una receta de 4 a 8 y de 4 a 2 raciones.
+La calculadora ajusta cantidades por proporción; no ajusta tiempos de cocción.
+
+DOCUMENTACIÓN OFICIAL
+https://docs.github.com/en/pages/quickstart
+https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site
+
+VERIFICACIÓN REALIZADA
+Comprobados mediante pruebas de código: cálculo doble y mitad, validación,
+unidades al gusto, decimales, texto seguro, rutas y caché sin conexión simulada.
+La instalación en móvil y navegador real queda por comprobar tras publicar.
+
+MANUAL INCORPORADO
+La página inicial incluye un botón «Cómo usar la calculadora» y un acceso
+visible a las instrucciones de instalación. Sube también manual.html.
+El manual forma parte de los archivos preparados para usar sin conexión.
+Si ya publicaste el paquete anterior, sustituye index.html y el archivo
+sw-calculadora-recetas.js, y añade manual.html. Puedes subir los seis juntos.
+Conserva el archivo CNAME que GitHub haya creado para tu subdominio.
