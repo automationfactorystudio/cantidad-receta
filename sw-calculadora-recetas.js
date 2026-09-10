@@ -1,5 +1,5 @@
 const PREFIX = 'calculadora-recetas-' + new URL(self.registration.scope).pathname + '-';
-const CACHE = PREFIX + 'v3';
+const CACHE = PREFIX + 'v4';
 const ASSETS = ['./', './index.html', './manual.html', './manifest-calculadora-recetas.json', './icon-appdeboy-192.png', './icon-appdeboy-512.png'];
 self.addEventListener('install', event => {
  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)).then(() => self.skipWaiting()));

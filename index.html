@@ -152,6 +152,16 @@
   .install-banner{display:flex;gap:14px;align-items:center;justify-content:space-between;background:var(--crema2);border:1px solid var(--borde);border-radius:12px;padding:16px;font-size:16px;line-height:1.5;}
   .install-banner a{color:var(--tierra-dk);font-weight:600;white-space:nowrap;padding:10px;border:1px solid var(--dorado);border-radius:8px;}
   @media(max-width:400px){.install-banner{align-items:flex-start;flex-direction:column;}}
+
+  .install-banner{border:2px solid var(--dorado);box-shadow:0 4px 18px rgba(139,94,60,.10);padding:20px;}
+  .install-banner[hidden]{display:none;}.install-banner-copy{flex:1;min-width:0;}
+  .install-banner-copy strong{font-family:var(--font-d);font-size:23px;line-height:1.2;}
+  .install-banner-copy p{margin-top:8px;}
+  .install-banner-actions{display:flex;flex-direction:column;gap:8px;flex-shrink:0;max-width:100%;}
+  .install-primary{font:600 18px/1.3 var(--font-b);padding:15px 18px;border:0;border-radius:10px;background:var(--tierra);color:var(--crema);cursor:pointer;min-height:48px;}
+  .install-primary:hover{background:var(--tierra-dk);}.install-primary:disabled{opacity:.65;cursor:wait;}
+  .install-later{font:16px var(--font-b);padding:10px;border:0;background:transparent;color:var(--muted);cursor:pointer;text-decoration:underline;}
+  @media(max-width:600px){.install-banner{flex-direction:column;align-items:stretch;}.install-banner-actions{width:100%;}}
 </style>
 </head>
 <body>
@@ -176,10 +186,13 @@
 
   <div class="welcome-tools">
     <a class="manual-link" href="./manual.html">📖 Cómo usar la calculadora</a>
-    <div class="install-banner" aria-label="Instalar la calculadora">
-      <div><strong>Tenla siempre a mano</strong><br>Puedes guardarla en tu móvil u ordenador.</div>
-      <a href="#guardar-app" onclick="document.getElementById('guardar-app').open=true">Cómo instalarla</a>
-    </div>
+    <aside class="install-banner" id="installBanner" aria-label="Instalar la calculadora">
+      <div class="install-banner-copy"><strong>Tu calculadora, a un toque</strong><p id="bannerMessage">Guárdala en tu móvil u ordenador. Es gratis y no necesitas registrarte.</p></div>
+      <div class="install-banner-actions">
+        <button type="button" class="install-primary" id="bannerInstall">Ver cómo instalarla</button>
+        <button type="button" class="install-later" id="bannerLater">Ahora no</button>
+      </div>
+    </aside>
   </div>
 
   <!-- RECETAS RÁPIDAS -->
@@ -465,16 +478,75 @@ if ('serviceWorker' in navigator) {
     .then(() => { statusEl.textContent = 'Lista para usar sin conexión en este navegador. Si borras sus datos, tendrás que abrirla de nuevo con internet.'; })
     .catch(() => { statusEl.textContent = 'No se ha podido preparar el modo sin conexión. Ábrela desde su enlace con internet y vuelve a intentarlo.'; });
 } else { statusEl.textContent = 'Este navegador no permite preparar el modo sin conexión.'; }
-let installPrompt;
+let installPrompt = null;
+let installInProgress = false;
+let installationCompleted = false;
 const installButton = document.getElementById('installButton');
-window.addEventListener('beforeinstallprompt', e => {e.preventDefault(); installPrompt=e; installButton.hidden=false;});
-installButton.addEventListener('click', async () => {
- if (!installPrompt) return;
- await installPrompt.prompt();
- await installPrompt.userChoice;
- installPrompt=null; installButton.hidden=true;
+const bannerInstall = document.getElementById('bannerInstall');
+const installBanner = document.getElementById('installBanner');
+const bannerMessage = document.getElementById('bannerMessage');
+const displayMode = window.matchMedia('(display-mode: standalone)');
+const isAppleMobile = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+let bannerDismissed = false;
+try { bannerDismissed = sessionStorage.getItem('recipes-install-dismissed') === '1'; } catch (_) {}
+function isInstalledView() { return installationCompleted || displayMode.matches || navigator.standalone === true; }
+function updateInstallUI() {
+  installBanner.hidden = isInstalledView() || bannerDismissed;
+  installButton.hidden = !installPrompt || isInstalledView();
+  bannerInstall.disabled = installInProgress;
+  installButton.disabled = installInProgress;
+  bannerInstall.textContent = installInProgress ? 'Abriendo instalación…' : installPrompt ? 'Instalar aplicación' : isAppleMobile ? 'Instalar en iPhone / iPad' : 'Ver cómo instalarla';
+  if (isAppleMobile && !installPrompt) {
+    bannerMessage.textContent = 'Añádela a tu pantalla de inicio. Pulsa el botón y te explicamos cómo hacerlo.';
+    document.getElementById('installHelp').textContent = 'En iPhone o iPad, abre este enlace en Safari. Pulsa Compartir y después «Añadir a pantalla de inicio». Si aparece «Abrir como app web», déjalo activado y pulsa Añadir. Si estás dentro de YouTube u otra aplicación, abre primero el enlace en Safari.';
+  }
+}
+function showInstallHelp() {
+  const help = document.getElementById('guardar-app');
+  help.open = true;
+  help.scrollIntoView({behavior:'smooth', block:'start'});
+  help.querySelector('summary').focus({preventScroll:true});
+}
+async function requestInstallation() {
+  if (installInProgress) return;
+  if (!installPrompt) { showInstallHelp(); return; }
+  const request = installPrompt;
+  installPrompt = null;
+  installInProgress = true;
+  updateInstallUI();
+  try {
+    await request.prompt();
+    const choice = await request.userChoice;
+    if (choice.outcome === 'accepted') {
+      bannerDismissed = true;
+    } else {
+      bannerMessage.textContent = 'Puedes seguir usando la calculadora sin instalarla. Si cambias de idea, tienes las instrucciones más abajo.';
+    }
+  } catch (_) {
+    showInstallHelp();
+  } finally {
+    installInProgress = false;
+    updateInstallUI();
+  }
+}
+window.addEventListener('beforeinstallprompt', event => {
+  event.preventDefault(); installPrompt = event; updateInstallUI();
 });
-window.addEventListener('appinstalled', () => {installButton.hidden=true; document.getElementById('installHelp').textContent='Calculadora instalada.';});
+bannerInstall.addEventListener('click', requestInstallation);
+installButton.addEventListener('click', requestInstallation);
+document.getElementById('bannerLater').addEventListener('click', () => {
+  bannerDismissed = true;
+  try { sessionStorage.setItem('recipes-install-dismissed', '1'); } catch (_) {}
+  updateInstallUI();
+});
+window.addEventListener('appinstalled', () => {
+  installationCompleted = true; installPrompt = null;
+  document.getElementById('installHelp').textContent = 'Calculadora instalada. Puedes abrirla desde su icono.';
+  updateInstallUI();
+});
+if (displayMode.addEventListener) displayMode.addEventListener('change', updateInstallUI);
+updateInstallUI();
+if (window.location.hash === '#guardar-app') document.getElementById('guardar-app').open = true;
 document.querySelectorAll('.receta-btn').forEach(el => {el.setAttribute('role','button');el.tabIndex=0;el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();el.click();}});});
 document.querySelectorAll('.coms-btn').forEach(el=>el.setAttribute('aria-label',(el.textContent.trim()==='+'?'Aumentar':'Reducir')+' '+el.parentElement.parentElement.querySelector('.card-title').textContent));
 </script>

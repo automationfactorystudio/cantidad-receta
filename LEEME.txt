@@ -47,7 +47,7 @@ tratado como texto; «al gusto» se conserva sin multiplicarlo.
 No requiere claves API, servidor propio, registro ni servicios de IA.
 
 PARA FUTURAS ACTUALIZACIONES
-Si cambias la aplicación, cambia también la versión v3 a v4, etc., en el
+Si cambias la aplicación, cambia también la versión v4 a v5, etc., en el
 archivo sw-calculadora-recetas.js y sube ambos. Después abre la aplicación
 con conexión, espera la actualización y vuelve a abrirla.
 
@@ -73,3 +73,12 @@ El manual forma parte de los archivos preparados para usar sin conexión.
 Si ya publicaste el paquete anterior, sustituye index.html y el archivo
 sw-calculadora-recetas.js, y añade manual.html. Puedes subir los seis juntos.
 Conserva el archivo CNAME que GitHub haya creado para tu subdominio.
+
+BANNER DE INSTALACIÓN DIRECTA
+El recuadro inicial ofrece «Instalar aplicación» cuando el navegador
+habilita la instalación PWA. Al pulsarlo, abre su diálogo de confirmación.
+En iPhone/iPad muestra instrucciones específicas; en otros navegadores
+sin instalación directa ofrece ayuda. «Ahora no» lo oculta durante la sesión.
+No se muestra dentro de la aplicación abierta en modo independiente.
+Prueba la instalación desde el enlace HTTPS definitivo, no con doble clic
+en index.html. La disponibilidad depende del navegador y de si ya está instalada.
